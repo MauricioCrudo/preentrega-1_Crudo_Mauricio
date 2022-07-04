@@ -1,12 +1,17 @@
 import fs from "fs";
-class Container {
+class ContainerMongo {
+	constructor(name) {
+		this.name = name;
+	}
+}
+class ContainerFs {
 	constructor(name) {
 		this.name = name;
 	}
 	async save(item) {
 		let cont;
 		try {
-			cont = await fs.promises.readFile(`./${this.name}.json`);
+			cont = await fs.promises.readFile(`./api/${this.name}.json`);
 			cont = JSON.parse(cont);
 		} catch (e) {
 			cont = [];
@@ -74,4 +79,4 @@ class Container {
 	}
 }
 
-export { Container };
+export { ContainerFs };

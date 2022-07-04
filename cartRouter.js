@@ -1,14 +1,20 @@
 import { Router } from "express";
-import { Container } from "./classes.js";
+import { ContainerFs } from "./contenedores/contenedorArchivo.js";
+import { CartDAOMongoDB } from "./daos/carts/cartDAOMongoDB.js";
+import { CartDAOFirebase } from "./daos/carts/cartDAOFirebase.js";
 import { productos } from "./productosRouter.js";
 
 const cartRouter = new Router();
-const cart = new Container("cart");
+const cart = new CartDAOMongoDB();
 
 cartRouter.post("", async (req, res) => {
 	const allCarts = await cart.getAll();
 	const id = allCarts.length + 1;
-	const newCart = { id: id, timestamp: Date.now(), products: [] };
+	const newCart = {
+		id: id,
+		timestamp: Date.now(),
+		products: [{ prueba: "prueba1" }],
+	};
 	await cart.save(newCart);
 	res.json(newCart);
 });
@@ -28,21 +34,18 @@ cartRouter.get("/:id/productos", async (req, res) => {
 	const id = Number(req.params.id);
 	const thisCart = await cart.getById(id);
 	if (thisCart) {
-		const productos = thisCart.products;
-		res.json(productos);
+		const products = thisCart.productos;
+		res.json(products);
 	} else {
 		res.json({ error: "no se encuentra este carrito" });
 	}
 });
 cartRouter.post("/:id/productos", async (req, res) => {
-	const cartId = Number(req.params.id);
+	const id = Number(req.params.id);
 	const prodId = req.body.id;
-	const thisCart = await cart.getById(cartId);
-	const thisProduct = await productos.getById(prodId);
-	thisCart.products.push(thisProduct);
-	await cart.deleteById(cartId);
-	await cart.save(thisCart);
-	res.json(thisProduct);
+	const newProduct = await productos.getById(prodId);
+	await cart.updateById(id, newProduct);
+	res.json(newProduct);
 });
 cartRouter.delete("/:id/productos/:prod_id", async (req, res) => {
 	const cartId = Number(req.params.id);
@@ -58,5 +61,10 @@ cartRouter.delete("/:id/productos/:prod_id", async (req, res) => {
 		res.json({ error: "no se encuentra este carrito" });
 	}
 });
-
+cartRouter.get("/productos", async (req, res) => {
+	const all = await productos.getAll();
+	const allCarts = await cart.getAll();
+	res.json(all);
+});
+cartRouter.get;
 export { cartRouter };
